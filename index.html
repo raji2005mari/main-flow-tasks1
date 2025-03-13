@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MERN CRUD</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>CRUD Operations with MongoDB</h1>
+
+    <input type="text" id="name" placeholder="Enter item name">
+    <input type="number" id="price" placeholder="Enter price">
+    <button onclick="createItem()">Add Item</button>
+
+    <div id="items-container"></div>
+
+    <script>
+        const apiUrl = "http://localhost:5000/items";
+
+        async function fetchItems() {
+            const response = await fetch(apiUrl);
+            const items = await response.json();
+            document.getElementById("items-container").innerHTML = items.map(item => `
+                <div class="item">
+                    <span>${item.name} - $${item.price}</span>
+                    <button onclick="updateItem('${item._id}', '${item.name}', ${item.price})">Edit</button>
+                    <button onclick="deleteItem('${item._id}')">Delete</button>
+                </div>
+            `).join("");
+        }
+
+        async function createItem() {
+            const name = document.getElementById("name").value;
+            const price = document.getElementById("price").value;
+            await fetch(apiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, price })
+            });
+            fetchItems();
+        }
+
+        async function updateItem(id, name, price) {
+            const newName = prompt("Edit name", name);
+            const newPrice = prompt("Edit price", price);
+            await fetch(`${apiUrl}/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: newName, price: newPrice })
+            });
+            fetchItems();
+        }
+
+        async function deleteItem(id) {
+            await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
+            fetchItems();
+        }
+
+        fetchItems();
+    </script>
+</body>
+</html>
